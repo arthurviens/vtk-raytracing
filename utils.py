@@ -166,9 +166,9 @@ def GetIntersect(obbTree, pSource, pTarget):
     
     return pointsInter, cellIdsInter
 
-def getNormals(actor):
+def getNormals(source):
     normalsCalc = vtk.vtkPolyDataNormals()
-    normalsCalc.SetInputConnection(actor.GetOutputPort())
+    normalsCalc.SetInputConnection(source.GetOutputPort())
     normalsCalc.ComputePointNormalsOff()
     normalsCalc.ComputeCellNormalsOn()
     normalsCalc.SplittingOff()
@@ -183,13 +183,78 @@ def clip(l):
         l[i] = min(1, max(0,e))
     return l
 
-# def BRDF(matSpecular, matAmbient, matDiffuse):
-    
 
-# def compute_rtx(scene, cameraP, cameraFocus, lightP, resolution = 256):
+def generate_box(s=3000):
+    #Cube
+    cubeSource = vtk.vtkCubeSource()
+    cubeSource.SetXLength(s)
+    cubeSource.SetYLength(s)
+    cubeSource.SetZLength(s)
+    cubeSource.SetCenter((-10,50,0))
+    cubeSource.Update()
+    cubeMapper = vtk.vtkPolyDataMapper()
+    cubeMapper.SetInputConnection(cubeSource.GetOutputPort())
+
+    cubeActor = vtk.vtkActor()
+    cubeActor.GetProperty().SetOpacity(1.)
+    cubeActor.SetMapper(cubeMapper)
+    cubeActor.GetProperty().SetColor([1.0, 0.986, 0.24])
     
+    obbtree = vtk.vtkOBBTree()
+    obbtree.SetDataSet(cubeActor.GetMapper().GetInput())
+    obbtree.BuildLocator()
     
+    return cubeActor, obbtree, cubeSource
     
+def generate_plane(p1, p2, p3):
+    points = vtk.vtkPoints()
+    # w = width / 2
+    # points.InsertNextPoint(-w, z, -w)
+    # points.InsertNextPoint(w, z, -w)
+    # points.InsertNextPoint(w, z, w)
+    # points.InsertNextPoint(-w, z, w)
+    points.InsertNextPoint(p1)
+    points.InsertNextPoint(p2)
+    points.InsertNextPoint(-w, z, w)
+    points.InsertNextPoint(-w, z, w)
+
+    # Create the polygon
+    polygon = vtk.vtkPolygon()
+    polygon.GetPoints().DeepCopy(points)
+    polygon.GetPointIds().SetNumberOfIds(4)
+    for i in range(4):
+        polygon.GetPointIds().SetId(i, i)
+
+    polygons = vtk.vtkCellArray()
+    polygons.InsertNextCell(polygon)
+
+    polygonPolyData = vtk.vtkPolyData()
+    polygonPolyData.SetPoints(points)
+    polygonPolyData.SetPolys(polygons)
+
+    vtknormals = vtk.vtkDoubleArray()
+    vtknormals.SetNumberOfComponents(3)
+    vtknormals.SetNumberOfTuples(polygonPolyData.GetNumberOfPoints())
+
+    vtknormals.SetTuple(0, [0, 1, 0])
+    vtknormals.SetTuple(1, [0, 1, 0])
+    vtknormals.SetTuple(2, [0, 1, 0])
+    vtknormals.SetTuple(3, [0, 1, 0])
+
+    polygonPolyData.GetPointData().SetNormals(vtknormals)
+
+    obbtree = vtk.vtkOBBTree()
+    obbtree.SetDataSet(polygonPolyData)
+    obbtree.BuildLocator()
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputData(polygonPolyData)
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetColor([1,1,1])
+
+    return actor, obbtree
 # Pour chaque pixel de l'image {
 #     Créer un rayon qui, de l'œil, passe par ce pixel
 #     Initialiser « NearestT » à « INFINITY » et « NearestObject » à « NULL »

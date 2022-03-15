@@ -237,12 +237,18 @@ class QMeshViewer(QtWidgets.QFrame):
         obbTree2.BuildLocator()
         self.obbTrees.append(obbTree2)
 
-
+        ####################################
+        ##BOX AROUND 
+        ####################################
+        # generate_plane(width, z)
+        boxActor, boxObbtree, cubeSource = generate_box()
+        self.renderer.AddActor(boxActor)
+        self.obbTrees.append(boxObbtree)
 
         self.actorsOfTree = []
         self.actorsOfTree.append(self.powerplant_actor)
         self.actorsOfTree.append(blue_sphere_actor)
-
+        self.actorsOfTree.append(boxActor)
         #################################
         #LIVE RTX COMPUTING
         # #################################
@@ -271,6 +277,9 @@ class QMeshViewer(QtWidgets.QFrame):
         self.normalsModels = []
         self.normalsModels.append(normalsCalcModel.GetOutput().GetCellData().GetNormals())
         self.normalsModels.append(normalsCalcBlueSphere.GetOutput().GetCellData().GetNormals())
+        
+        normalsCalcCube = getNormals(cubeSource)
+        self.normalsModels.append(normalsCalcCube.GetOutput().GetCellData().GetNormals())
 
         # Loop through all of sun's cell-centers
         for idx in range(pointsCellCentersSun.GetNumberOfPoints()):
@@ -467,7 +476,7 @@ class QMeshViewer(QtWidgets.QFrame):
                 pointsInter, cellIdsInter, min_i = closestIntersect(self.obbTrees, pointSun, pointRayTarget)
                 ac_pointHit.GetProperty().SetColor(intersect_color)
                 
-                normalModel = self.normalsModels[min_i].GetTuple(idx)
+                # normalModel = self.normalsModels[min_i].GetTuple(idx)
                 # print(pointsInter[0])
                 
                 if(len(pointsInter) > 0):
