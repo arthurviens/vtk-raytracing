@@ -114,7 +114,7 @@ class QMeshViewer(QtWidgets.QFrame):
         pp_actor = vtkActor()
         pp_actor.SetMapper(pp_mapper)
         # pp_actor.GetProperty().SetColor(colors.GetColor3d('Coral'))
-        pp_actor.GetProperty().SetColor((1., 0.81, 0.28))
+        pp_actor.GetProperty().SetColor((0.1, 0.8, 0.1))
         # pp_actor.GetProperty().SetAmbientColor(colors.GetColor3d('Coral'))
         # pp_actor.GetProperty().SetSpecularColor(colors.GetColor3d('Coral'))
         # pp_actor.GetProperty().SetDiffuseColor(colors.GetColor3d('Coral'))
@@ -220,7 +220,7 @@ class QMeshViewer(QtWidgets.QFrame):
 
 
         blue_sphere_actor, blue_sphere = addPoint(self.renderer, [100, 100, 100], 
-                                                radius=50, color=[1., 118/255., 73/255.])
+                                                radius=50, color=[1., 0., 0.])
         # blue_sphere_actor.GetProperty().SetAmbientColor(0, 0, 0.1)
         # blue_sphere_actor.GetProperty().SetDiffuseColor(0, 0, 0.7)
         # blue_sphere_actor.GetProperty().SetSpecularColor(1, 1, 1)
@@ -242,13 +242,13 @@ class QMeshViewer(QtWidgets.QFrame):
         ####################################
         # generate_plane(width, z)
         boxActor, boxObbtree, cubeSource = generate_box()
-        self.renderer.AddActor(boxActor)
-        self.obbTrees.append(boxObbtree)
+        #self.renderer.AddActor(boxActor)
+        #self.obbTrees.append(boxObbtree)
 
         self.actorsOfTree = []
         self.actorsOfTree.append(self.powerplant_actor)
         self.actorsOfTree.append(blue_sphere_actor)
-        self.actorsOfTree.append(boxActor)
+        #self.actorsOfTree.append(boxActor)
         #################################
         #LIVE RTX COMPUTING
         # #################################
@@ -278,8 +278,8 @@ class QMeshViewer(QtWidgets.QFrame):
         self.normalsModels.append(normalsCalcModel.GetOutput().GetCellData().GetNormals())
         self.normalsModels.append(normalsCalcBlueSphere.GetOutput().GetCellData().GetNormals())
         
-        normalsCalcCube = getNormals(cubeSource)
-        self.normalsModels.append(normalsCalcCube.GetOutput().GetCellData().GetNormals())
+        #normalsCalcCube = getNormals(cubeSource)
+        #self.normalsModels.append(normalsCalcCube.GetOutput().GetCellData().GetNormals())
 
         # Loop through all of sun's cell-centers
         for idx in range(pointsCellCentersSun.GetNumberOfPoints()):
@@ -899,7 +899,7 @@ class QMeshViewer(QtWidgets.QFrame):
 
                 #TODO : All objects should have different value of shininess and reflection
                 shininess = 20
-                reflection = 0.5
+                reflection = 0.01
 
                 ambientLight = l2n(self.light.GetAmbientColor()) * intensity
                 specularLight = l2n(self.light.GetSpecularColor()) * intensity
@@ -919,14 +919,15 @@ class QMeshViewer(QtWidgets.QFrame):
                 intersection_to_origin /= np.linalg.norm(intersection_to_origin)
                 
                 H = intersection_to_light + intersection_to_origin
-                H /= np.clip(np.linalg.norm(H), 0, 1)
+                H = H / np.clip(np.linalg.norm(H), 0, 1)
                 
-                illumination += specularMat * specularLight * np.power(np.dot(N, H), (shininess / 4))
+                
+                illumination += specularMat * specularLight * np.power(np.clip(np.dot(N, H), 0, 1), (shininess / 4))
 
                 current_color = l2n(self.actorsOfTree[idx_tree].GetProperty().GetColor())
                 return illumination + reflection \
-                    * np.clip(self.radianceAtPoint(point, nextPoint, nextN, depth + 1, 
-                                                max_depth=max_depth,
+                    * np.clip(self.radianceAtPoint(point, nextPoint, 
+                                                nextN, depth + 1, max_depth=max_depth,
                                                 current_color=current_color), 0, 1)
 
 #endregion

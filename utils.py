@@ -198,7 +198,7 @@ def generate_box(s=3000):
     cubeActor = vtk.vtkActor()
     cubeActor.GetProperty().SetOpacity(1.)
     cubeActor.SetMapper(cubeMapper)
-    cubeActor.GetProperty().SetColor([1.0, 0.986, 0.24])
+    cubeActor.GetProperty().SetColor([1.0, 1.0, 1.0])
     
     obbtree = vtk.vtkOBBTree()
     obbtree.SetDataSet(cubeActor.GetMapper().GetInput())
