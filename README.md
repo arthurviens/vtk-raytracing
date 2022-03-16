@@ -127,18 +127,22 @@ Get the "screen" position in the 3D space to get each pixel's position
 
 For each pixel in the image :
     Cast a ray going from the camera that pass through the pixel's position
-    If this ray hits an objetct :
+    If this ray does not hit an object :
+        Set the pixel's color to background color
+    else:
         Get the intersection point
-        If there is no obstacle between point and light source :
-            If we reached MaxDepth :
+        If we reached MaxDepth :
+            If there is no obstacle between point and light source :
                 Set the pixel's color with the light's diffuse color
             Else :
-                If the surface is reflective, recursion to get color's contribution from all the objects
+                The point is shadowed, set pixel's color black 
         Else :
-            The point is shadowed, set pixel's color black
+            If there is no obstacle between point and light source:
+                Light contribution + If the surface is reflective, recursion to get color's contribution from all the objects
+            Else:
+                If the surface is reflective, recursion to get color's contribution from all the objects
 
     Else (no obstacle for the ray):
-        Set the pixel's color with the object's ambient color
 
 ```
 
